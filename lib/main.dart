@@ -48,7 +48,6 @@ class ResumeData {
     required this.summary,
     required this.education,
     required this.experience,
-    required this.skills,
     this.photoPath,
   });
 
@@ -60,7 +59,6 @@ class ResumeData {
   final String summary;
   final String education;
   final String experience;
-  final String skills;
   final String? photoPath;
 }
 
@@ -83,7 +81,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
   final _summaryController = TextEditingController();
   final _educationController = TextEditingController();
   final _experienceController = TextEditingController();
-  final _skillsController = TextEditingController();
 
   String? _photoPath;
 
@@ -97,7 +94,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
     _summaryController.dispose();
     _educationController.dispose();
     _experienceController.dispose();
-    _skillsController.dispose();
     super.dispose();
   }
 
@@ -134,7 +130,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
       summary: _summaryController.text.trim(),
       education: _educationController.text.trim(),
       experience: _experienceController.text.trim(),
-      skills: _skillsController.text.trim(),
       photoPath: _photoPath,
     );
 
@@ -230,13 +225,6 @@ class _ResumeFormPageState extends State<ResumeFormPage> {
                       maxLines: 3,
                       validator: _requiredField,
                     ),
-                    _LabeledField(
-                      controller: _skillsController,
-                      label: 'Habilidades (separe por virgula)',
-                      icon: Icons.tune_outlined,
-                      maxLines: 2,
-                      validator: _requiredField,
-                    ),
                   ],
                 ),
                 const SizedBox(height: 18),
@@ -267,12 +255,6 @@ class ResumePreviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final skills = data.skills
-        .split(',')
-        .map((item) => item.trim())
-        .where((item) => item.isNotEmpty)
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Curriculo'),
@@ -294,20 +276,120 @@ class ResumePreviewPage extends StatelessWidget {
               title: 'Resumo',
               icon: Icons.psychology_outlined,
               content: data.summary,
+              onTap: () => _openCategory(
+                context,
+                title: 'Resumo',
+                icon: Icons.psychology_outlined,
+                content: data.summary,
+              ),
             ),
             _InfoSection(
               title: 'Experiencia',
               icon: Icons.work_history_outlined,
               content: data.experience,
+              onTap: () => _openCategory(
+                context,
+                title: 'Experiencia',
+                icon: Icons.work_history_outlined,
+                content: data.experience,
+              ),
             ),
             _InfoSection(
               title: 'Formacao',
               icon: Icons.school_outlined,
               content: data.education,
+              onTap: () => _openCategory(
+                context,
+                title: 'Formacao',
+                icon: Icons.school_outlined,
+                content: data.education,
+              ),
             ),
-            _SkillsSection(skills: skills),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openCategory(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required String content,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CategoryDetailPage(
+          title: title,
+          icon: icon,
+          content: content,
+        ),
+      ),
+    );
+  }
+}
+
+class CategoryDetailPage extends StatelessWidget {
+  const CategoryDetailPage({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.content,
+  });
+
+  final String title;
+  final IconData icon;
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = content
+        .split('\n')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(icon, color: const Color(0xFF5B67F1)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '$title completo',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...items.map(
+            (item) => Card(
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.circle, size: 10),
+                title: Text(item),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -504,7 +586,6 @@ class _ProfileCard extends StatelessWidget {
               children: [
                 _ContactChip(icon: Icons.mail_outline, text: data.email),
                 _ContactChip(icon: Icons.phone_outlined, text: data.phone),
-                _ContactChip(icon: Icons.location_on_outlined, text: data.location),
               ],
             ),
           ],
@@ -537,11 +618,13 @@ class _InfoSection extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.content,
+    required this.onTap,
   });
 
   final String title;
   final IconData icon;
   final String content;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -549,68 +632,37 @@ class _InfoSection extends StatelessWidget {
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: const Color(0xFF5B67F1)),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: const Color(0xFF5B67F1)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(content),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SkillsSection extends StatelessWidget {
-  const _SkillsSection({required this.skills});
-
-  final List<String> skills;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome_outlined, color: Color(0xFF5B67F1)),
-                const SizedBox(width: 8),
-                Text(
-                  'Habilidades',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: skills
-                  .map((skill) => Chip(label: Text(skill)))
-                  .toList(growable: false),
-            ),
-          ],
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                content,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
