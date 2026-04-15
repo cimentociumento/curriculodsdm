@@ -294,17 +294,6 @@ class ResumePreviewPage extends StatelessWidget {
                 content: data.experience,
               ),
             ),
-            _InfoSection(
-              title: 'Formacao',
-              icon: Icons.school_outlined,
-              content: data.education,
-              onTap: () => _openCategory(
-                context,
-                title: 'Formacao',
-                icon: Icons.school_outlined,
-                content: data.education,
-              ),
-            ),
           ],
         ),
       ),
@@ -628,6 +617,8 @@ class _InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final previewContent = content.replaceAll('\n', ' ').trim();
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
@@ -657,7 +648,7 @@ class _InfoSection extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                content,
+                previewContent,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
